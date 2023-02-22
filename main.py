@@ -5,13 +5,24 @@ import keyboard
 def get_abbrev(word, real_words, abbrevs):
     abbrev = word[0]
     i = 0
+    three_abbrevs = []
     for char in word:
         i += 1
         if i == 1: continue
         new_abbrev = abbrev + char
+        j = 0
+        for char2 in word:
+            j += 1
+            if j <= i: continue
+            three_abbrev = new_abbrev + char2
+            if three_abbrev not in three_abbrevs: three_abbrevs.append(three_abbrev)
         if new_abbrev in real_words: continue
-        if new_abbrev in abbrevs: continue
+        if new_abbrev in abbrevs.values(): continue
         return new_abbrev
+    for abbrev in three_abbrevs:
+        if abbrev in real_words: continue
+        if abbrev in abbrevs.values(): continue
+        return abbrev
     return None
 
 def add_new_words(words_history, real_words, abbrevs):
@@ -23,7 +34,7 @@ def add_new_words(words_history, real_words, abbrevs):
         if count < 3: continue
         if word in abbrevs.keys(): continue
         i += 1
-        if i > 5: break
+        if i > 15: break
         new_abbrev = get_abbrev(word, words, abbrevs)
         if new_abbrev is None: continue
         abbrevs[word] = new_abbrev
@@ -62,7 +73,7 @@ keyboard.hook(keyEvent)
 words_history = {}
 while True:
     if 'space' in keystrokes or 'comma' in keystrokes:
-        keystrokes = keystrokes.replace("space","").replace("comma","")
+        keystrokes = keystrokes.replace("space","").replace("comma","").replace(",","")
         if len(keystrokes) > 4:
             if "backback" in keystrokes or "caps lock" in keystrokes or "ctrl" in keystrokes or "alttab" in keystrokes:
                 keystrokes = ''
@@ -77,6 +88,5 @@ while True:
             abbrevs = add_new_words(words_history, words, abbrevs)
         if keystrokes in abbrevs.keys() and len(keystrokes) > 4 and "'" not in keystrokes:
             print("Suggestion:", abbrevs[keystrokes], "for", keystrokes)
-            #print(keystrokes)
         keystrokes = ''
     time.sleep(0.05)
