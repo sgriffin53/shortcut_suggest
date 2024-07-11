@@ -349,7 +349,7 @@ while True:
         #print(word_count)
         #print(sorted_counts)
         count = 0
-        print("Top 10")
+        print("Top 30")
         print("=======================")
         top_lines = []
         for i in range(10):
