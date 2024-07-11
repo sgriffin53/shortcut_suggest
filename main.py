@@ -3,6 +3,7 @@ import time
 import keyboard
 import wordfreq
 import sys
+import os
 import inflect
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import wordnet as wn
@@ -241,6 +242,7 @@ def keyEvent(e):
 
 abbrevs = {}
 for line in lines:
+    if "::" not in line: continue
     line = line.replace("\n", "")
     abbrev = line.split("::")[1]
     word = line.split("::")[2]
@@ -288,6 +290,9 @@ if do_dict_add:
 ff.close()
 tot_chars_typed = 1
 chars_saved = 0
+message_history = []
+word_count = {}
+last_time = time.time()
 while True:
     if 'space' in keystrokes or 'comma' in keystrokes or "." in keystrokes:
         #print(keystrokes)
@@ -327,7 +332,48 @@ while True:
                 urgency = "!!!"
                 colour = 'green'
             print_string = urgency + " Suggestion: " + abbrevs[keystrokes] + " for " + keystrokes + " - Saved: " + str(chars_saved) + "/" + str(tot_chars_typed) + " (" + str(percent) + "%)"
-            print(colored(print_string, colour))
+            if keystrokes not in word_count.keys(): word_count[keystrokes] = 0
+            word_count[keystrokes] += 1
+            message_history.append(print_string)
+            #print(colored(print_string, colour))
             #print("Potential chars saved: " + str(chars_saved) + " (" + str(percent) + "%")
         keystrokes = ''
+    duration = time.time() - last_time
+    #print(duration)
+    if duration > 3:
+        last_time = time.time()
+        os.system('cls')
+        #print(duration)
+        # get top 10
+        sorted_counts = sorted(word_count.items(), key=lambda x:x[1], reverse=True)
+        #print(word_count)
+        #print(sorted_counts)
+        count = 0
+        print("Top 10")
+        print("=======================")
+        top_lines = []
+        for i in range(10):
+            top_lines.append("")
+        for key in sorted_counts:
+            count += 1
+            index = (count - 1) % 10
+            #if count > 10: top_lines[index] += " "
+            top_lines[index] += key[0] + " (" + abbrevs[key[0]] + ") " + str(word_count[key[0]])
+            buffer_mult = 1
+            buffer_mult = top_lines[index].count('(')
+            top_lines[index] += " "*(26*buffer_mult-len(top_lines[index]))
+            #print(key[0], "(" + abbrevs[key[0]] + ")", word_count[key[0]])
+            if count >= 30: break
+        for line in top_lines:
+            print(line)
+        print("=======================")
+        # get messages
+        i = len(message_history)
+        count = 0
+        while i > 0:
+            i -= 1
+            count += 1
+            print(message_history[i])
+            if count >= 5: break
+
     time.sleep(0.05)
